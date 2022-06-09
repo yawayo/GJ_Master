@@ -18,17 +18,32 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     int try_count = 1;
 
-    while(!Connect_Radar())
+    Disconnect_Radar();
+
+    //while(!Connect_Radar())
     {
         qDebug("Retry...%d", try_count);
         try_count++;
     }
-    while(!Connect_Camera())
+    qDebug("Radar Connection Successful");
+    //while(!Connect_Camera())
     {
         qDebug("Retry...%d", try_count);
         try_count++;
     }
     qDebug("Camera Connection Successful");
+    //while(!Connect_Socket())
+    {
+        qDebug("Retry...%d", try_count);
+        try_count++;
+    }
+    qDebug("Socket Connection Successful");
+    //while(!Connect_Serial())
+    {
+        qDebug("Retry...%d", try_count);
+        try_count++;
+    }
+    qDebug("Serial Connection Successful");
 }
 
 MainWindow::~MainWindow()
@@ -70,6 +85,19 @@ void MainWindow::createUI()
     cameraGroup->setLayout(cameraGroup_layout);
 
 
+    socketGroup = new QGroupBox("Socket");
+    Connectbtn_Socket = new QPushButton("Connect");
+    Disconnectbtn_Socket = new QPushButton("Disconnect"); Disconnectbtn_Socket->setEnabled(false);
+    QHBoxLayout* socketGroup_layout = new QHBoxLayout;
+    connect(Connectbtn_Socket, SIGNAL(clicked()), SLOT(on_Connectbtn_Socket_clicked()));
+    connect(Disconnectbtn_Socket, SIGNAL(clicked()), SLOT(on_Disconnectbtn_Socket_clicked()));
+    socketGroup->setMaximumSize(300,100);
+
+    socketGroup_layout->addWidget(Connectbtn_Socket);
+    socketGroup_layout->addWidget(Disconnectbtn_Socket);
+    socketGroup->setLayout(socketGroup_layout);
+
+
     serialGroup = new QGroupBox("Serial");
     Connectbtn_Serial = new QPushButton("Connect");
     Disconnectbtn_Serial = new QPushButton("Disconnect"); Disconnectbtn_Serial->setEnabled(false);
@@ -103,6 +131,7 @@ void MainWindow::createUI()
 
     button_layout->addWidget(radarGroup);
     button_layout->addWidget(cameraGroup);
+    button_layout->addWidget(socketGroup);
     button_layout->addWidget(serialGroup);
     button_layout->addWidget(settingGroup);
     button_layout->addSpacerItem(button_layout_spacer);
@@ -1110,6 +1139,8 @@ void MainWindow::initValue()
 {
     InitializeValue_Radar();
     InitializeValue_Camera();
+    InitializeValue_Socket();
+    InitializeValue_Serial();
 
     readSettings();
     read_Setting_ini("C:/Users/ODYSSEY/Desktop/Setting/Simulator_Setting.ini");
@@ -1224,7 +1255,6 @@ void MainWindow::on_Disconnectbtn_Radar_clicked()
 }
 bool MainWindow::Connect_Radar()
 {
-
     if(!N_Radar_Viewer->startRadar)
     {
         Connectbtn_Radar->setEnabled(false);
@@ -2502,8 +2532,6 @@ void MainWindow::on_Disconnectbtn_Camera_clicked()
 
 bool MainWindow::Connect_Camera()
 {
-    qDebug() << "Connect";
-
     if(!startCamera)
     {
         Connectbtn_Camera->setEnabled(false);
@@ -2533,12 +2561,6 @@ bool MainWindow::Connect_Camera()
             player->setMedia(requestRtsp);
             qDebug() << url;
             player->play();
-            //            structPlayInfo.hPlayWnd = HWND(Display_Camera->winId());
-            //            structPlayInfo.lChannel = 1;
-            //            structPlayInfo.dwStreamType = 0;
-            //            structPlayInfo.dwLinkMode = 0;
-            //            structPlayInfo.bBlocked = 1;
-            //            NET_DVR_RealPlay_V40(UserID, &structPlayInfo, NULL, NULL);
         }
 
 
@@ -2564,7 +2586,6 @@ bool MainWindow::Disconnect_Camera()
         Disconnectbtn_Camera->setEnabled(false);
         startCamera = false;
     }
-
 
     return true;
 }
@@ -2601,14 +2622,113 @@ void MainWindow::on_moveRIGHT_released()
     NET_DVR_PTZControlWithSpeed_Other(UserID, 1, PAN_RIGHT, 1, 5);
 }
 
+bool MainWindow::InitializeValue_Socket()
+{
+
+}
+void MainWindow::on_Connectbtn_Socket_clicked()
+{
+    Connect_Socket();
+}
+
+void MainWindow::on_Disconnectbtn_Socket_clicked()
+{
+    Disconnect_Socket();
+}
+
+bool MainWindow::Connect_Socket()
+{
+    if(!startSocket)
+    {
+
+
+
+        Connectbtn_Socket->setEnabled(false);
+        Disconnectbtn_Socket->setEnabled(true);
+        startSocket = true;
+    }
+
+    return true;
+}
+bool MainWindow::Disconnect_Socket()
+{
+    if(startSocket)
+    {
+
+
+        Connectbtn_Socket->setEnabled(true);
+        Disconnectbtn_Socket->setEnabled(false);
+        startSocket = false;
+    }
+
+    return true;
+}
+
+bool MainWindow::InitializeValue_Serial()
+{
+
+}
+
 void MainWindow::on_Connectbtn_Serial_clicked()
 {
-    qDebug() << "Serial Connect";
+    Connect_Serial();
 }
 
 void MainWindow::on_Disconnectbtn_Serial_clicked()
 {
-    qDebug() << "Serial Disconnect";
+    Disconnect_Serial();
+}
+
+bool MainWindow::Connect_Serial()
+{
+    if(!startSerial)
+    {
+
+        WSADATA wsa;
+        WSAStartup(MAKEWORD(2,2), &wsa);
+
+        SOCKET skt;
+        skt = socket(PF_INET,SOCK_STREAM,IPPROTO_TCP);
+
+        SOCKADDR_IN addr = {};
+        addr.sin_family = AF_INET;
+        addr.sin_port = htons(4444);
+        addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+        bind(skt, (SOCKADDR*)&addr,sizeof(addr));
+        listen(skt,SOMAXCONN);
+
+        SOCKADDR_IN client = {};
+        int client_size = sizeof(client);
+        ZeroMemory(&client,client_size);
+        SOCKET client_sock = accept(skt,(SOCKADDR*)&client,&client_size);
+
+        char buffer[]="I am server";
+        char ret[1024]={0};
+        send(client_sock,buffer,strlen(buffer),0);
+        recv(client_sock,ret,1024,0);
+
+
+        Connectbtn_Serial->setEnabled(false);
+        Disconnectbtn_Serial->setEnabled(true);
+        startSerial = true;
+    }
+
+    return true;
+}
+
+bool MainWindow::Disconnect_Serial()
+{
+    if(startSerial)
+    {
+
+
+        Connectbtn_Serial->setEnabled(true);
+        Disconnectbtn_Serial->setEnabled(false);
+        startSerial = false;
+    }
+
+    return true;
 }
 
 void MainWindow::on_Settingbtn_clicked()
@@ -2634,10 +2754,12 @@ void MainWindow::closeEvent(QCloseEvent * event)
 {
     if(N_Radar_Viewer->startRadar)
         Disconnect_Radar();
-    //    if(startSerial)
-    //        Disconnectbtn_Serial();
     if(startCamera)
         Disconnect_Camera();
+    if(startSocket)
+        Disconnect_Socket();
+    if(startSerial)
+        Disconnect_Serial();
 
     exit(0);
 }

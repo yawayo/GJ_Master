@@ -57,6 +57,9 @@
 
 #include <HCNetSDK.h>
 
+#include <winsock2.h>
+#pragma comment(lib, "ws2_32")
+
 #define N_OF_RADAR 2
 #define NORTH 0
 #define SOUTH 1
@@ -81,6 +84,10 @@ class MainWindow : public QMainWindow
     QGroupBox* cameraGroup;
     QPushButton* Connectbtn_Camera;
     QPushButton* Disconnectbtn_Camera;
+
+    QGroupBox* socketGroup;
+    QPushButton* Connectbtn_Socket;
+    QPushButton* Disconnectbtn_Socket;
 
     QGroupBox* serialGroup;
     QPushButton* Connectbtn_Serial;
@@ -530,7 +537,6 @@ public:
 
     bool startCamera;
 
-
     //Camera Function
     // - Init Camera Parameter Function
     bool InitializeValue_Camera();
@@ -539,13 +545,31 @@ public:
     bool Connect_Camera();
     bool Disconnect_Camera();
 
-    ////    // - Camera Thread Function
-    ////    static void* callReadFunc_Camera(void *func);
+
+    //Serial Parameter
+    // - Serial Parameter
+    bool startSocket;
+
+
+    // - Init Socket Parameter Function
+    bool InitializeValue_Socket();
+
+    // - Socket Connection Function
+    bool Connect_Socket();
+    bool Disconnect_Socket();
 
 
     //Serial Parameter
     // - Serial Parameter
     bool startSerial;
+
+
+    // - Init Socket Parameter Function
+    bool InitializeValue_Serial();
+
+    // - Socket Connection Function
+    bool Connect_Serial();
+    bool Disconnect_Serial();
 
 
     //Test
@@ -578,6 +602,9 @@ private slots:
 
     void on_Connectbtn_Camera_clicked();
     void on_Disconnectbtn_Camera_clicked();
+
+    void on_Connectbtn_Socket_clicked();
+    void on_Disconnectbtn_Socket_clicked();
 
     void on_Connectbtn_Serial_clicked();
     void on_Disconnectbtn_Serial_clicked();

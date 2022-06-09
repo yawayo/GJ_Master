@@ -21,8 +21,8 @@ int main(int argc, char *argv[])
 
     w.setStyleSheet(s);
 
-    //w.show();
-    w.showFullScreen();
+    w.show();
+    //w.showFullScreen();
 
     QApplication::setQuitOnLastWindowClosed(false);
 
