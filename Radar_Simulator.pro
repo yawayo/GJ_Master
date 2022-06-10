@@ -15,7 +15,8 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     obj_linked_list.cpp \
-    serialclass.cpp
+    serialclass.cpp \
+    socketclass.cpp
 
 HEADERS += \
     HCNetSDK.h \
@@ -26,7 +27,8 @@ HEADERS += \
     drawradarinfo.h \
     mainwindow.h \
     obj_linked_list.h \
-    serialclass.h
+    serialclass.h \
+    socketclass.h
 
 
 LIBS += -LC:/Users/ODYSSEY/Desktop/PTZTest/LIB/ -lHCCore -lHCNetSDK -lPlayCtrl -lHCAlarm -lHCGeneralCfgMgr -lHCPreview

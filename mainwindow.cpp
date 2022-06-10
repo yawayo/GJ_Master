@@ -2640,8 +2640,7 @@ bool MainWindow::Connect_Socket()
 {
     if(!startSocket)
     {
-
-
+        m_Socket.Open('127.0.0.1', 1234)
 
         Connectbtn_Socket->setEnabled(false);
         Disconnectbtn_Socket->setEnabled(true);
@@ -2684,29 +2683,6 @@ bool MainWindow::Connect_Serial()
     if(!startSerial)
     {
 
-        WSADATA wsa;
-        WSAStartup(MAKEWORD(2,2), &wsa);
-
-        SOCKET skt;
-        skt = socket(PF_INET,SOCK_STREAM,IPPROTO_TCP);
-
-        SOCKADDR_IN addr = {};
-        addr.sin_family = AF_INET;
-        addr.sin_port = htons(4444);
-        addr.sin_addr.s_addr = htonl(INADDR_ANY);
-
-        bind(skt, (SOCKADDR*)&addr,sizeof(addr));
-        listen(skt,SOMAXCONN);
-
-        SOCKADDR_IN client = {};
-        int client_size = sizeof(client);
-        ZeroMemory(&client,client_size);
-        SOCKET client_sock = accept(skt,(SOCKADDR*)&client,&client_size);
-
-        char buffer[]="I am server";
-        char ret[1024]={0};
-        send(client_sock,buffer,strlen(buffer),0);
-        recv(client_sock,ret,1024,0);
 
 
         Connectbtn_Serial->setEnabled(false);

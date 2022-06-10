@@ -57,8 +57,8 @@
 
 #include <HCNetSDK.h>
 
-#include <winsock2.h>
-#pragma comment(lib, "ws2_32")
+#include <socketclass.h>
+#include <serialclass.h>
 
 #define N_OF_RADAR 2
 #define NORTH 0
@@ -550,6 +550,8 @@ public:
     // - Serial Parameter
     bool startSocket;
 
+    SocketClass m_Socket;
+
 
     // - Init Socket Parameter Function
     bool InitializeValue_Socket();
@@ -562,6 +564,8 @@ public:
     //Serial Parameter
     // - Serial Parameter
     bool startSerial;
+
+    SerialClass m_Serial;
 
 
     // - Init Socket Parameter Function
