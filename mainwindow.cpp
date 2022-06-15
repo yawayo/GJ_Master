@@ -10,40 +10,38 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     initValue();
 
-    GetLocalTime(&global_time);
+//    GetLocalTime(&global_time);
 
-    timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(readTime()));
-    timer->start(10);
+//    timer = new QTimer(this);
+//    connect(timer, SIGNAL(timeout()), this, SLOT(readTime()));
+//    timer->start(10);
 
-    int try_count = 1;
+//    int try_count = 1;
 
-    Disconnect_Radar();
-
-    //while(!Connect_Radar())
-    {
-        qDebug("Retry...%d", try_count);
-        try_count++;
-    }
-    qDebug("Radar Connection Successful");
-    //while(!Connect_Camera())
-    {
-        qDebug("Retry...%d", try_count);
-        try_count++;
-    }
-    qDebug("Camera Connection Successful");
-    //while(!Connect_Socket())
-    {
-        qDebug("Retry...%d", try_count);
-        try_count++;
-    }
-    qDebug("Socket Connection Successful");
-    //while(!Connect_Serial())
-    {
-        qDebug("Retry...%d", try_count);
-        try_count++;
-    }
-    qDebug("Serial Connection Successful");
+//    //while(!Connect_Radar())
+//    {
+//        qDebug("Retry...%d", try_count);
+//        try_count++;
+//    }
+//    qDebug("Radar Connection Successful");
+//    //while(!Connect_Camera())
+//    {
+//        qDebug("Retry...%d", try_count);
+//        try_count++;
+//    }
+//    qDebug("Camera Connection Successful");
+//    //while(!Connect_Socket())
+//    {
+//        qDebug("Retry...%d", try_count);
+//        try_count++;
+//    }
+//    qDebug("Socket Connection Successful");
+//    //while(!Connect_Serial())
+//    {
+//        qDebug("Retry...%d", try_count);
+//        try_count++;
+//    }
+//    qDebug("Serial Connection Successful");
 }
 
 MainWindow::~MainWindow()
@@ -1046,23 +1044,20 @@ void MainWindow::createUI()
     status_layout = new QHBoxLayout; statusBar_layout->setSpacing(0);
     N_Radar_Status = new QLabel("Radar"); N_Radar_Status->setAlignment(Qt::AlignCenter); N_Radar_Status->setMaximumSize(100, 20); N_Radar_Status->setFrameShape(QFrame::Box); N_Radar_Status->setLineWidth(1);
     S_Radar_Status = new QLabel("Radar"); S_Radar_Status->setAlignment(Qt::AlignCenter); S_Radar_Status->setMaximumSize(100, 20); S_Radar_Status->setFrameShape(QFrame::Box); S_Radar_Status->setLineWidth(1);
-    E_Camera_Status = new QLabel("Camera"); E_Camera_Status->setAlignment(Qt::AlignCenter); E_Camera_Status->setMaximumSize(100, 20); E_Camera_Status->setFrameShape(QFrame::Box); E_Camera_Status->setLineWidth(1);
-    W_Camera_Status = new QLabel("Camera"); W_Camera_Status->setAlignment(Qt::AlignCenter); W_Camera_Status->setMaximumSize(100, 20); W_Camera_Status->setFrameShape(QFrame::Box); W_Camera_Status->setLineWidth(1);
-    N_Serial_Status = new QLabel("Serial"); N_Serial_Status->setAlignment(Qt::AlignCenter); N_Serial_Status->setMaximumSize(100, 20); N_Serial_Status->setFrameShape(QFrame::Box); N_Serial_Status->setLineWidth(1);
-    S_Serial_Status = new QLabel("Serial"); S_Serial_Status->setAlignment(Qt::AlignCenter); S_Serial_Status->setMaximumSize(100, 20); S_Serial_Status->setFrameShape(QFrame::Box); S_Serial_Status->setLineWidth(1);
+    Camera_Status = new QLabel("Camera"); Camera_Status->setAlignment(Qt::AlignCenter); Camera_Status->setMaximumSize(100, 20); Camera_Status->setFrameShape(QFrame::Box); Camera_Status->setLineWidth(1);
+    Socket_Status = new QLabel("Serial"); Socket_Status->setAlignment(Qt::AlignCenter); Socket_Status->setMaximumSize(100, 20); Socket_Status->setFrameShape(QFrame::Box); Socket_Status->setLineWidth(1);
+    Serial_Status = new QLabel("Serial"); Serial_Status->setAlignment(Qt::AlignCenter); Serial_Status->setMaximumSize(100, 20); Serial_Status->setFrameShape(QFrame::Box); Serial_Status->setLineWidth(1);
 
     status_layout->addWidget(N_Radar_Status);
     status_layout->addWidget(S_Radar_Status);
-    status_layout->addWidget(E_Camera_Status);
-    status_layout->addWidget(W_Camera_Status);
-    status_layout->addWidget(N_Serial_Status);
-    status_layout->addWidget(S_Serial_Status);
+    status_layout->addWidget(Camera_Status);
+    status_layout->addWidget(Socket_Status);
+    status_layout->addWidget(Serial_Status);
     status_layout->setStretch(0, 1);
     status_layout->setStretch(1, 1);
     status_layout->setStretch(2, 1);
     status_layout->setStretch(3, 1);
     status_layout->setStretch(4, 1);
-    status_layout->setStretch(5, 1);
     status_layout->setContentsMargins(0, 0, 0, 0);
     status_layout->setSpacing(0);
 
@@ -1268,6 +1263,8 @@ bool MainWindow::Connect_Radar()
         }
         else
         {
+            N_Radar_Viewer->reset();
+
             gettimeofday(&N_Radar_Viewer->A_Cycle_time, nullptr);
             N_Radar_Viewer->startRadar = true;
             N_Radar_Status->setStyleSheet("background-color: rgb(0, 255, 0);");
@@ -1294,6 +1291,8 @@ bool MainWindow::Connect_Radar()
         }
         else
         {
+            S_Radar_Viewer->reset();
+
             gettimeofday(&S_Radar_Viewer->A_Cycle_time, nullptr);
             S_Radar_Viewer->startRadar = true;
             S_Radar_Status->setStyleSheet("background-color: rgb(0, 255, 0);");
@@ -1315,6 +1314,7 @@ bool MainWindow::Disconnect_Radar()
     if(N_Radar_Viewer->startRadar)
     {
         N_Radar_Viewer->startRadar = false;
+        N_Radar_Viewer->first_A = false;
         TPCANStatus stsResult = N_Radar_Viewer->m_PCANDevice.Uninitialize(N_Radar_Viewer->m_Handle);
         if(stsResult != PCAN_ERROR_OK)
         {
@@ -1324,14 +1324,10 @@ bool MainWindow::Disconnect_Radar()
         }
         else
         {
+            pthread_join(thread_radar[NORTH], nullptr);
+
+            N_Radar_Viewer->reset();
             //Traffictimer->stop();
-            for(int i=0; i<MAX_OBJ; i++)
-            {
-                N_Radar_Viewer->Obj_data[i].remove_all();
-            }
-            memset(N_Radar_Viewer->exist, 0, sizeof(bool) * MAX_OBJ);
-            memset(N_Radar_Viewer->this_frame_data, 0, sizeof(Obj_inf) * MAX_OBJ);
-            memset(N_Radar_Viewer->infoBoxOccupied, 0, sizeof(bool) * INFOBOX_NUM);
             N_Radar_Status->setStyleSheet("background-color: rgb(255, 0, 0);");
         }
     }
@@ -1339,6 +1335,7 @@ bool MainWindow::Disconnect_Radar()
     if(S_Radar_Viewer->startRadar)
     {
         S_Radar_Viewer->startRadar = false;
+        S_Radar_Viewer->first_A = false;
         TPCANStatus stsResult = S_Radar_Viewer->m_PCANDevice.Uninitialize(S_Radar_Viewer->m_Handle);
         if(stsResult != PCAN_ERROR_OK)
         {
@@ -1348,14 +1345,10 @@ bool MainWindow::Disconnect_Radar()
         }
         else
         {
+            pthread_join(thread_radar[SOUTH], nullptr);
+
             //Traffictimer->stop();
-            for(int i=0; i<MAX_OBJ; i++)
-            {
-                S_Radar_Viewer->Obj_data[i].remove_all();
-            }
-            memset(S_Radar_Viewer->exist, 0, sizeof(bool) * MAX_OBJ);
-            memset(S_Radar_Viewer->this_frame_data, 0, sizeof(Obj_inf) * MAX_OBJ);
-            memset(S_Radar_Viewer->infoBoxOccupied, 0, sizeof(bool) * INFOBOX_NUM);
+            S_Radar_Viewer->reset();
             S_Radar_Status->setStyleSheet("background-color: rgb(255, 0, 0);");
         }
     }
@@ -1853,7 +1846,7 @@ void MainWindow::Set_Obj_B(TPCANMsg msg)
                                     cvSetIdentity(N_Radar_Viewer->kalman_v[og.ID]->error_cov_post, cvRealScalar(1e+10));
                                 }
 
-                                for(i=0; i<INFOBOX_NUM * 2; i++)
+                                for(i=0; i<INFOBOX_NUM; i++)
                                 {
                                     if(!N_Radar_Viewer->infoBoxOccupied[i])
                                     {
@@ -2140,7 +2133,7 @@ void MainWindow::Set_Obj_B(TPCANMsg msg)
                                     cvSetIdentity(S_Radar_Viewer->kalman_v[og.ID]->error_cov_post, cvRealScalar(1e+10));
                                 }
 
-                                for(i=0; i<INFOBOX_NUM * 2; i++)
+                                for(i=0; i<INFOBOX_NUM; i++)
                                 {
                                     if(!S_Radar_Viewer->infoBoxOccupied[i])
                                     {
@@ -2561,6 +2554,7 @@ bool MainWindow::Connect_Camera()
             player->setMedia(requestRtsp);
             qDebug() << url;
             player->play();
+            Camera_Status->setStyleSheet("background-color: rgb(0, 255, 0);");
         }
 
 
@@ -2581,6 +2575,8 @@ bool MainWindow::Disconnect_Camera()
         NET_DVR_Logout(UserID);
 
         player->stop();
+
+        Camera_Status->setStyleSheet("background-color: rgb(255, 0, 0);");
 
         Connectbtn_Camera->setEnabled(true);
         Disconnectbtn_Camera->setEnabled(false);
@@ -2640,11 +2636,13 @@ bool MainWindow::Connect_Socket()
 {
     if(!startSocket)
     {
-        m_Socket.Open('127.0.0.1', 1234)
+        m_socketDevice.Open("127.0.0.1", 1234);
 
         Connectbtn_Socket->setEnabled(false);
         Disconnectbtn_Socket->setEnabled(true);
         startSocket = true;
+
+        Socket_Status->setStyleSheet("background-color: rgb(0, 255, 0);");
     }
 
     return true;
@@ -2658,16 +2656,89 @@ bool MainWindow::Disconnect_Socket()
         Connectbtn_Socket->setEnabled(true);
         Disconnectbtn_Socket->setEnabled(false);
         startSocket = false;
+
+        Socket_Status->setStyleSheet("background-color: rgb(255, 0, 0);");
     }
 
     return true;
 }
 
-bool MainWindow::InitializeValue_Serial()
+bool MainWindow::send_Socket_Connection_Check()
 {
 
 }
+bool MainWindow::InitializeValue_Serial()
+{
+    startSerial = false;
 
+    s_Port = 4;
+    s_Baudrate = 19200;
+
+    N_display_ON = false;
+    S_display_ON = false;
+
+    getSerialPort();
+
+    CheckSerialDatatimer = new QTimer(this);
+    connect(CheckSerialDatatimer, SIGNAL(timeout()), this, SLOT(ClassifyingEachSerialMessage()));
+    check_ack_timer = new QTimer(this);
+    connect(check_ack_timer, SIGNAL(timeout()), this, SLOT(check_ACK()));
+    check_connect_timer = new QTimer(this);
+    connect(check_connect_timer, SIGNAL(timeout()), this, SLOT(check_connect()));
+}
+void MainWindow::getSerialPort()
+{
+    HKEY hKey;
+
+    RegOpenKey(HKEY_LOCAL_MACHINE, TEXT("HARDWARE\\DEVICEMAP\\SERIALCOMM"), &hKey);
+
+    TCHAR szData[20], szName[100];
+    DWORD index = 0, dwSize = 100, dwSize2 = 20, dwType = REG_SZ;
+    // m_Combo_CommList.ResetContent();
+    memset(szData, 0x00, sizeof(szData));
+    memset(szName, 0x00, sizeof(szName));
+
+
+    //https://msdn.microsoft.com/en-us/library/windows/desktop/ms724865(v=vs.85).aspx
+    //hKey - 레지스터키 핸들
+    //index - 값을 가져올 인덱스.. 다수의 값이 있을 경우 필요
+    //szName - 항목값이 저장될 배열
+    //dwSize - 배열의 크기
+    while (ERROR_SUCCESS == RegEnumValue(hKey, index, szName, &dwSize, NULL, NULL, NULL, NULL))
+    {
+        index++;
+
+        //https://msdn.microsoft.com/en-us/library/windows/desktop/ms724911(v=vs.85).aspx
+        //szName-레지터스터 항목의 이름
+        //dwType-항목의 타입, 여기에서는 널로 끝나는 문자열
+        //szData-항목값이 저장될 배열
+        //dwSize2-배열의 크기
+        RegQueryValueEx(hKey, szName, NULL, &dwType, (LPBYTE)szData, &dwSize2);
+        //m_Combo_CommList.AddString(CString(szData));
+
+        int len = wcslen((wchar_t*)szName);
+        char* psz = new char[2*len + 1];
+        wcstombs(psz, (wchar_t*)szName, 2*len + 1);
+        std::string s = psz;
+        delete [] psz;
+
+        len = wcslen((wchar_t*)szName);
+        char* pszt = new char[2*len + 1];
+        wcstombs(pszt, (wchar_t*)szData, 2*len + 1);
+        std::string st = pszt;
+        delete [] pszt;
+
+        qDebug() << QString::fromStdString(s) << QString::fromStdString(st);
+
+        memset(szData, 0x00, sizeof(szData));
+        memset(szName, 0x00, sizeof(szName));
+        dwSize = 100;
+        dwSize2 = 20;
+    }
+
+    //m_Combo_CommList.SetCurSel(0);
+    RegCloseKey(hKey);
+}
 void MainWindow::on_Connectbtn_Serial_clicked()
 {
     Connect_Serial();
@@ -2682,8 +2753,24 @@ bool MainWindow::Connect_Serial()
 {
     if(!startSerial)
     {
+        int res = m_serialDevice.Open(s_Port, s_Baudrate);
+        if(res == false)
+        {
+            qDebug() << "Serial Open ERROR";
+            return false;
+        }
+        else
+        {
+            CheckSerialDatatimer->start(3);
+            check_ack_timer->start(3);
+            check_connect_timer->start(10000);
 
+            startSerial = true;
+            Serial_Status->setStyleSheet("background-color: rgb(0, 255, 0);");
+            pthread_create(&rfThread, nullptr, MainWindow::callreadSerialMessageFunc, this);
 
+            send_danger_level(0, 2);
+        }
 
         Connectbtn_Serial->setEnabled(false);
         Disconnectbtn_Serial->setEnabled(true);
@@ -2697,14 +2784,744 @@ bool MainWindow::Disconnect_Serial()
 {
     if(startSerial)
     {
+        startSerial = false;
+        pthread_join(rfThread, nullptr);
 
+        Serial_Status->setStyleSheet("background-color: rgb(255, 0, 0);");
+        CheckSerialDatatimer->stop();
+        check_ack_timer->stop();
+        check_connect_timer->stop();
 
         Connectbtn_Serial->setEnabled(true);
         Disconnectbtn_Serial->setEnabled(false);
-        startSerial = false;
     }
 
     return true;
+}
+
+void *MainWindow::callreadSerialMessageFunc(void *func)
+{
+    (static_cast<MainWindow *>(func))->readSerialMessage();
+    return nullptr;
+}
+void MainWindow::readSerialMessage()
+{
+    //qDebug() << "readRF";
+
+    while(startSerial)
+    {
+        char data = m_serialDevice.readOneByte();
+        if(data != NULL)
+        {
+            buffer.push_back(data);
+        }
+
+        if(buffer.size() >= 5)
+        {
+            if(buffer[0] == STX)
+            {
+                int len = buffer[1];
+                if(buffer.size() >= (len + 2))
+                {
+                    char code = buffer[2];
+                    if((code == DANGER_LEVEL_ACK) || (code == CHECK_CONNECTION_ACK))
+                    {
+                        char msg[32] = {0, };
+                        for(int i=0; i<len+2; i++)
+                            msg[i] = buffer[i];
+                        _msg_t msg_set;
+                        memcpy(msg_set.msg, msg, 32);
+                        msg_set.len = len+2;
+                        recv_buf.push(msg_set);
+                        buffer.erase(buffer.begin(), buffer.begin()+len+2);
+                    }
+                    else
+                        buffer.erase(buffer.begin());
+                }
+            }
+            else
+                buffer.erase(buffer.begin());
+
+
+            if(buffer.size() >= 50)
+                buffer.erase(buffer.begin());
+        }
+    }
+}
+
+bool MainWindow::send_danger_level(int ID, int danger_level)
+{
+    char data[32];
+    unsigned short checkSum = 0;
+    char checkSum_high = 0;
+    char checkSum_low = 0;
+
+    sprintf(data, "%c%c%c%c%c", STX, 6, DANGER_LEVEL, ID, danger_level);
+
+    checkSum = calCRC((unsigned char*)data, 5);
+    checkSum_high = checkSum>>8;
+    checkSum_low = checkSum & 0xFF;
+
+    _msg_t msg_s;
+    sprintf(msg_s.msg, "%c%c%c%c%c%c%c%c\n", STX, 6, DANGER_LEVEL, ID, danger_level, checkSum_high, checkSum_low, ETX);
+    msg_s.len = 6 + 2;
+
+    if(startSerial)
+    {
+        m_serialDevice.writeData(msg_s.msg, msg_s.len + 1);
+
+        switch(ID - 1)
+        {
+        case NORTH:
+        {
+            gettimeofday(&N_timeSendDanger, nullptr);
+            break;
+        }
+
+        case SOUTH:
+        {
+            gettimeofday(&S_timeSendDanger, nullptr);
+            break;
+        }
+
+        default:
+            break;
+
+        }
+
+
+//        display_ON = false;
+//        flicker_timer->stop();
+//        switch(danger_level)
+//        {
+//        case 1:
+//        {
+//            display_ON = true;
+//            showSpeed = true;
+//            QPixmap DisplayImg(currentPATH + "/img/Display_ON.png");
+//            ui->AIDisplayImg->setPixmap(DisplayImg);
+//            ui->AIDisplayImg->setScaledContents(true);
+//            flicker_timer->start(200);
+//            break;
+//        }
+//        case 2:
+//        {
+//            showSpeed = true;
+//            QPixmap DisplayImg(currentPATH + "/img/Display_ON.png");
+//            ui->AIDisplayImg->setPixmap(DisplayImg);
+//            ui->AIDisplayImg->setScaledContents(true);
+//            break;
+//        }
+//        case 3:
+//        {
+//            showSpeed = false;
+//            QPixmap DisplayImg(currentPATH + "/img/Display_OFF.png");
+//            ui->AIDisplayImg->setPixmap(DisplayImg);
+//            ui->AIDisplayImg->setScaledContents(true);
+//            break;
+//        }
+//        case 4:
+//        {
+//            showSpeed = false;
+//            QPixmap DisplayImg(currentPATH + "/img/Display_OFF.png");
+//            ui->AIDisplayImg->setPixmap(DisplayImg);
+//            ui->AIDisplayImg->setScaledContents(true);
+//            break;
+//        }
+//        case 5:
+//        {
+//            showSpeed = false;
+//            QPixmap DisplayImg(currentPATH + "/img/Display_OFF.png");
+//            ui->AIDisplayImg->setPixmap(DisplayImg);
+//            ui->AIDisplayImg->setScaledContents(true);
+//            break;
+//        }
+//        case 6:
+//        {
+//            showSpeed = false;
+//            QPixmap DisplayImg("/home/pi/image/Display_OFF.png");
+//            ui->AIDisplayImg->setPixmap(DisplayImg);
+//            ui->AIDisplayImg->setScaledContents(true);
+//            break;
+//        }
+//        default:
+//        {
+//            showSpeed = false;
+//            QPixmap DisplayImg("/home/pi/image/Display_OFF.png");
+//            ui->AIDisplayImg->setPixmap(DisplayImg);
+//            ui->AIDisplayImg->setScaledContents(true);
+//            break;
+//        }
+//        }
+
+
+        char hex_msg[64] = {0, };
+        str2hex(hex_msg, msg_s.msg, msg_s.len);
+        if(do_print_text) qDebug("Send Danger Level : %s", hex_msg);
+    }
+    else
+        if(do_print_text) qDebug() << "Send Danger Level Error : Not connected Serial Module";
+}
+
+bool MainWindow::send_Serial_Connection_Check(int ID)
+{
+    char data[32] = {0, };
+    unsigned short checkSum = 0;
+    char checkSum_high = 0;
+    char checkSum_low = 0;
+
+    sprintf(data, "%c%c%c%c", STX, 5, CHECK_CONNECTION, ID);
+
+    checkSum = calCRC((unsigned char*)data, 4);
+    checkSum_high = checkSum>>8;
+    checkSum_low = checkSum & 0xFF;
+
+    _msg_t msg_s;
+    sprintf(msg_s.msg, "%c%c%c%c%c%c%c\n", STX, 5, CHECK_CONNECTION, ID, checkSum_high, checkSum_low, ETX);
+    msg_s.len = 5 + 2;
+
+    if(startSerial)
+    {
+        m_serialDevice.writeData(msg_s.msg, msg_s.len + 1);
+
+        switch(ID - 1)
+        {
+        case NORTH:
+        {
+            gettimeofday(&N_timeSendConnect, nullptr);
+            break;
+        }
+
+        case SOUTH:
+        {
+            gettimeofday(&S_timeSendConnect, nullptr);
+            break;
+        }
+
+        default:
+            break;
+
+        }
+
+        char hex_msg[64] = {0, };
+        str2hex(hex_msg, msg_s.msg, msg_s.len);
+        if(do_print_text) qDebug("Send Connect Check : %s", hex_msg);
+    }
+    else
+        if(do_print_text) qDebug() << "Send Connection Check Error : Not connected Serial Module";
+}
+void MainWindow::check_connect()
+{
+    if(startSerial)
+    {
+        N_waitConnect = true;
+        N_countConnect = 0;
+        S_waitConnect = true;
+        S_countConnect = 0;
+        PD_waitConnect = true;
+        PD_countConnect = 0;
+
+        send_Serial_Connection_Check(NORTH + 1);
+        send_Serial_Connection_Check(SOUTH + 1);
+        send_Socket_Connection_Check();
+    }
+}
+void MainWindow::ClassifyingEachSerialMessage()
+{
+    if(!recv_buf.empty())
+    {
+        _msg_t msg;
+        memcpy(&msg, &recv_buf.front(), sizeof(_msg_t));
+        recv_buf.pop();
+
+        switch(msg.msg[2])
+        {
+        case DANGER_LEVEL_ACK:
+        {
+            char hex_msg[64] = {0, };
+            str2hex(hex_msg, msg.msg, msg.len);
+            qDebug("DANGER LEVEL ACK : %s\n", hex_msg);
+
+            check_Dabger_Level_ACK(msg);
+            break;
+        }
+
+        case CHECK_CONNECTION_ACK:
+        {
+            char hex_msg[64] = {0, };
+            str2hex(hex_msg, msg.msg, msg.len);
+            qDebug("CHECK CONNECTION ACK : %s\n", hex_msg);
+
+            check_Serial_CONNECT_ACK(msg);
+            break;
+        }
+
+        default:
+            break;
+        }
+    }
+}
+bool MainWindow::check_Dabger_Level_ACK(_msg_t msg)
+{
+    if(startSerial)
+    {
+        char msg_4_crc[32] = {0, };
+
+        memcrop(msg.msg, 0, msg.len-2, msg_4_crc);
+
+        if(check_CRC16(msg_4_crc))
+        {
+            switch(msg.msg[3] - 1)
+            {
+            case NORTH:
+            {
+                if(msg.msg[4] == ACK)
+                {
+                    N_waitDanger = false;
+                    N_countstatusDanger = 0;
+                    return true;
+                }
+                else
+                {
+                    usleep(10000);
+
+                    send_danger_level(NORTH + 1, lastDanger);
+                }
+                break;
+            }
+
+            case SOUTH:
+            {
+                if(msg.msg[4] == ACK)
+                {
+                    S_waitDanger = false;
+                    S_countstatusDanger = 0;
+                    return true;
+                }
+                else
+                {
+                    usleep(10000);
+
+                    send_danger_level(SOUTH + 1, lastDanger);
+                }
+                break;
+            }
+
+            default:
+                break;
+
+            }
+        }
+    }
+
+    return true;
+}
+bool MainWindow::check_Serial_CONNECT_ACK(_msg_t msg)
+{
+    if(startSerial)
+    {
+        char msg_4_crc[32] = {0, };
+
+        memcrop(msg.msg, 0, msg.len-2, msg_4_crc);
+
+        if(check_CRC16(msg_4_crc))
+        {
+            switch(msg.msg[3] - 1)
+            {
+            case NORTH:
+            {
+                if(msg.msg[4] == ACK)
+                {
+                    N_waitConnect = false;
+                    N_countstatusConnect = 0;
+                    return true;
+                }
+                else
+                {
+                    usleep(10000);
+
+                    send_Serial_Connection_Check(msg.msg[3]);
+                }
+                break;
+            }
+
+            case SOUTH:
+            {
+                if(msg.msg[4] == ACK)
+                {
+                    S_waitConnect = false;
+                    S_countstatusConnect = 0;
+                    return true;
+                }
+                else
+                {
+                    usleep(10000);
+
+                    send_Serial_Connection_Check(msg.msg[3]);
+                }
+                break;
+            }
+
+            default:
+                break;
+            }
+        }
+    }
+    return true;
+}
+void MainWindow::check_ACK()
+{
+//    int i;
+//    bool check_waiting_danger = false;
+//    bool check_waiting_connect = false;
+//    for(i=0; i<slave_num; i++)
+//    {
+//        if(waitDanger[i])
+//            check_waiting_danger = true;
+//        if(waitConnect[i])
+//            check_waiting_connect = true;
+//    }
+//    if(check_waiting_danger)
+//    {
+//        QDateTime now_t = QDateTime::currentDateTime();
+
+//        if(timeSendDanger.secsTo(now_t) >= 1)
+//        {
+//            for(i=0; i<slave_num; i++)
+//                if(waitDanger[i])
+//                    countDanger[i]++;
+
+//            bool connection_check = false;
+
+//            for(i=0; i<slave_num; i++)
+//            {
+//                if(countDanger[i]>=RESEND_TIME)
+//                {
+//                    connection_check = true;
+//                    countstatusDanger[i]++;
+//                }
+//            }
+
+//            if(connection_check)
+//            {
+//                memset(waitDanger, false, sizeof(bool) * MAX_SLAVE_NUM);
+//                memset(countDanger, 0, sizeof(int) * MAX_SLAVE_NUM);
+//            }
+//            else
+//            {
+//                for(int i=1; i<=slave_num; i++)
+//                {
+//                    if(waitDanger[i-1])
+//                    {
+//                        Send_danger_level(i, lastDanger);
+//                    }
+//                }
+//                timeSendDanger = QDateTime::currentDateTime();
+//            }
+//        }
+//    }
+//    else
+//    {
+//        memset(waitDanger, false, sizeof(bool) * MAX_SLAVE_NUM);
+//        memset(countDanger, 0, sizeof(int) * MAX_SLAVE_NUM);
+//    }
+
+//    if(check_waiting_connect)
+//    {
+//        QDateTime now_t = QDateTime::currentDateTime();
+
+//        if(timeSendConnect.secsTo(now_t) >= 1)
+//        {
+//            for(i=0; i<slave_num; i++)
+//                if(waitConnect[i])
+//                    countConnect[i]++;
+
+//            bool connection_check = false;
+
+//            for(i=0; i<slave_num; i++)
+//            {
+//                if(countConnect[i]>=RESEND_TIME)
+//                {
+//                    connection_check = true;
+//                    countstatusConnect[i]++;
+//                }
+//            }
+
+//            if(connection_check)
+//            {
+//                memset(waitConnect, false, sizeof(bool) * MAX_SLAVE_NUM);
+//                memset(countConnect, 0, sizeof(int) * MAX_SLAVE_NUM);
+//            }
+//            else
+//            {
+//                for(int i=1; i<=slave_num; i++)
+//                    if(waitConnect[i-1])
+//                        Send_Connection_Check(i);
+
+//                timeSendConnect = QDateTime::currentDateTime();
+//            }
+//        }
+//    }
+//    else
+//    {
+//        memset(waitConnect, false, sizeof(bool) * MAX_SLAVE_NUM);
+//        memset(countConnect, 0, sizeof(int) * MAX_SLAVE_NUM);
+//    }
+//    bool connect_fail = false;
+//    for(i=0; i<slave_num; i++)
+//        if((countstatusDanger[i] + countstatusConnect[i]) >= 10)
+//            connect_fail = true;
+
+//    if(connect_fail)
+//        ui->RFConnection->setStyleSheet("background-color: rgb(255, 255, 0);");
+//    else
+//        ui->RFConnection->setStyleSheet("background-color: rgb(0, 255, 0);");
+}
+
+bool MainWindow::check_CRC16(char* msg)
+{
+    char data[32] = {0, };
+    char data_4_crc[32] = {0, };
+    char crc_data[3] = {0, };
+    int len = msg[1];
+    memcpy(data, msg, len+1);
+    memcrop(data, 0, len-2, data_4_crc);
+
+    unsigned short crc = calCRC((unsigned char*)data_4_crc, len-1);
+    memcrop(data, len-1, len, crc_data);
+
+    char crc_high = crc>>8;
+    char crc_low = crc & 0xFF;
+    //qDebug("%X %X", crc_high, crc_low);
+
+    if((crc_high == crc_data[0]) && (crc_low == crc_data[1]))
+        return true;
+
+    return false;
+}
+void MainWindow::memcrop(char* in_buff, int s, int e, char* out_buff)
+{
+    memcpy(out_buff, in_buff+s, e-s+1);
+    out_buff[e-s + 1] = '\0';
+    return;
+}
+int MainWindow::hex2dec(char* buff, int s, int e)
+{
+    char tbuff[10];
+    int i, oval;
+    for(i=0; i<(e - s + 1); i++)
+        tbuff[i] = buff[s + i];
+    tbuff[i] = '\0';
+    sscanf(tbuff, "%x", &oval);
+    return oval;
+}
+void MainWindow::str2hex(char* buff, char* data, int size)
+{
+    memset(buff, 0, 64);
+    char hexbuff[4] = {0, };
+    for(int i=0; i<size; i++)
+    {
+        char2hex(hexbuff, data[i]);
+        buff[(i * 3) + 0] = hexbuff[0];
+        buff[(i * 3) + 1] = hexbuff[1];
+        buff[(i * 3) + 2] = hexbuff[2];
+    }
+}
+void MainWindow::char2hex(char* out_buff, char in_buff)
+{
+    sprintf(out_buff, "%02X ", (unsigned char)in_buff);
+}
+
+std::tuple<int, int> MainWindow::checkDangerRadar()
+{
+    float min_dist = 1000;
+    bool N_danger = false;
+    bool N_in_ROI = false;
+    int N_danger_level = NO_CAR;
+    bool S_danger = false;
+    bool S_in_ROI = false;
+    int S_danger_level = NO_CAR;
+
+    int i;
+    for(i=0; i<MAX_OBJ; i++)
+    {
+        if(N_Radar_Viewer->Obj_data[i].getsize() >= 2)
+        {
+            Obj_inf last_data = N_Radar_Viewer->Obj_data[i].getLast();
+
+            N_in_ROI = true;
+            if(last_data.Distance <= min_dist)
+            {
+                min_dist = last_data.Distance;
+                N_danger = last_data.danger;
+            }
+        }
+    }
+    if(N_in_ROI)
+    {
+        if(N_danger)
+            N_danger_level = SAFE_CAR;
+        else
+            N_danger_level = DANGER_CAR;
+    }
+    else
+        N_danger_level = NO_CAR;
+
+    min_dist = 1000;
+    for(i=0; i<MAX_OBJ; i++)
+    {
+        if(S_Radar_Viewer->Obj_data[i].getsize() >= 2)
+        {
+            Obj_inf last_data = S_Radar_Viewer->Obj_data[i].getLast();
+
+            S_in_ROI = true;
+            if(last_data.Distance <= min_dist)
+            {
+                min_dist = last_data.Distance;
+                S_danger = last_data.danger;
+            }
+        }
+    }
+    if(S_in_ROI)
+    {
+        if(S_danger)
+            S_danger_level = SAFE_CAR;
+        else
+            S_danger_level = DANGER_CAR;
+    }
+    else
+        S_danger_level = NO_CAR;
+
+    return {N_danger_level, S_danger_level};
+}
+
+std::tuple<int, int> MainWindow::checkDangerPD()
+{
+    int E_danger_level = SAFE_PD;
+    int W_danger_level = SAFE_PD;
+
+    E_danger_level = E_statusPD;
+    W_danger_level = W_statusPD;
+
+    return {E_danger_level, W_danger_level};
+}
+
+void MainWindow::check_danger()
+{
+    auto [N_Radar_danger_level, S_Radar_danger_level] = checkDangerRadar();
+    auto [E_PD_danger_level, W_PD_danger_level] = checkDangerPD();
+
+    int danger_level = 7;
+
+
+    if(check_danger_noise)
+    {
+        timeval now_t;
+        gettimeofday(&now_t, nullptr);
+
+        if((now_t.tv_sec - Danger_time.tv_sec) + ((now_t.tv_usec - Danger_time.tv_usec) / 1000000) >= 3)
+        {
+            check_danger_noise = false;
+            return;
+        }
+    }/*
+    if(lastDanger > danger_level)
+    {
+        lastDanger = danger_level;
+
+        memset(waitDanger, true, sizeof(bool) * MAX_SLAVE_NUM);
+        memset(countDanger, 0, sizeof(int) * MAX_SLAVE_NUM);
+
+        Send_danger_level(0, lastDanger);
+
+        if(log_work)
+        {
+            if(startRadarThread && startSerial)
+            {
+                bool header = false;
+                if(last_save_danger.date().day() != global_time.date().day())
+                {
+                    last_save_danger = global_time;
+                    log_danger_PATH = log_DIR + "/Danger/" + last_save_danger.toString("yyyy-MM-dd-HH-mm-ss-zzz") + ".csv";
+                    header = true;
+                }
+                QFile file(log_danger_PATH);
+                file.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
+                QTextStream out(&file);
+
+                if(header)
+                    out << "시간, Radar Status,PD Status, Danger Level\n";
+
+                QDateTime now = global_time;
+                out << global_time.toString("yyyy/MM/dd hh:mm:ss.zzz") << ",";
+                switch(radar_status)
+                {
+                case NO_CAR:
+                    out << "EMPTY" << ",";
+                    break;
+
+                case SAFE_CAR:
+                    out << "SAFE" << ",";
+                    break;
+
+                case DANGER_CAR:
+                    out << "DANGER" << ",";
+                    break;
+                }
+                switch(pd_status)
+                {
+                case SAFE_PD:
+                    out << "SAFE" << ",";
+                    break;
+
+                case DANGER_PD:
+                    out << "DANGER" << ",";
+                    break;
+                }
+                out << lastDanger << "\n";
+
+                file.close();
+            }
+        }
+        check_danger_noise = false;
+    }
+    else if(lastDanger < danger_level)
+    {
+        if(!check_danger_noise) Danger_time = QDateTime::currentDateTime();
+        check_danger_noise = true;
+    }*/
+}
+void MainWindow::N_flicker_display()
+{
+    if(N_display_ON)
+    {
+        QPixmap DisplayImg(currentPATH + "/img/Display_OFF.png");
+        N_Display_Status->setPixmap(DisplayImg);
+        N_Display_Status->setScaledContents(true);
+    }
+    else
+    {
+        QPixmap DisplayImg(currentPATH + "/img/Display_ON.png");
+        N_Display_Status->setPixmap(DisplayImg);
+        N_Display_Status->setScaledContents(true);
+    }
+    N_display_ON = !N_display_ON;
+}
+void MainWindow::S_flicker_display()
+{
+    if(S_display_ON)
+    {
+        QPixmap DisplayImg(currentPATH + "/img/Display_OFF.png");
+        S_Display_Status->setPixmap(DisplayImg);
+        S_Display_Status->setScaledContents(true);
+    }
+    else
+    {
+        QPixmap DisplayImg(currentPATH + "/img/Display_ON.png");
+        S_Display_Status->setPixmap(DisplayImg);
+        S_Display_Status->setScaledContents(true);
+    }
+    S_display_ON = !S_display_ON;
 }
 
 void MainWindow::on_Settingbtn_clicked()

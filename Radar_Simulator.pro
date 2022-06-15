@@ -31,7 +31,7 @@ HEADERS += \
     socketclass.h
 
 
-LIBS += -LC:/Users/ODYSSEY/Desktop/PTZTest/LIB/ -lHCCore -lHCNetSDK -lPlayCtrl -lHCAlarm -lHCGeneralCfgMgr -lHCPreview
+LIBS += -LC:/Users/ODYSSEY/Desktop/PTZTest/LIB/ -lHCCore -lHCNetSDK -lPlayCtrl -lHCAlarm -lHCGeneralCfgMgr -lHCPreview -lws2_32
 
 LIBS += D:/OpenCV/opencv_build/bin/libopencv_calib3d3415.dll
 LIBS += D:/OpenCV/opencv_build/bin/libopencv_core3415.dll

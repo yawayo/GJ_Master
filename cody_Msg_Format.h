@@ -38,6 +38,8 @@ struct Obj_inf {
     bool virtual_obj;
 
     int index_of_infoBox;
+
+    bool danger;
 };
 
 // 200

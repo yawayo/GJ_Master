@@ -51,6 +51,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <queue>
 
 #include <cody_Msg_Format.h>
 #include <drawradarinfo.h>
@@ -63,8 +64,16 @@
 #define N_OF_RADAR 2
 #define NORTH 0
 #define SOUTH 1
+#define EAST 1
+#define WEST 2
 
 #define KEEP_SEC 3
+
+#define NO_CAR 0
+#define SAFE_CAR 1
+#define DANGER_CAR 2
+#define SAFE_PD 0
+#define DANGER_PD 1
 
 class MainWindow : public QMainWindow
 {
@@ -437,10 +446,9 @@ class MainWindow : public QMainWindow
     QHBoxLayout* status_layout;
     QLabel* N_Radar_Status;
     QLabel* S_Radar_Status;
-    QLabel* E_Camera_Status;
-    QLabel* W_Camera_Status;
-    QLabel* N_Serial_Status;
-    QLabel* S_Serial_Status;
+    QLabel* Camera_Status;
+    QLabel* Socket_Status;
+    QLabel* Serial_Status;
 
 
 public:
@@ -550,7 +558,17 @@ public:
     // - Serial Parameter
     bool startSocket;
 
-    SocketClass m_Socket;
+    SocketClass m_socketDevice;
+    QString socketIP;
+    int socketPort;
+
+    bool E_statusPD;
+    bool W_statusPD;
+
+    pthread_t socketThread;
+    static void* callreadSocketMessageFunc(void *func);
+
+    void readSocketMessage();
 
 
     // - Init Socket Parameter Function
@@ -560,20 +578,94 @@ public:
     bool Connect_Socket();
     bool Disconnect_Socket();
 
+    bool send_PD_InOut_ACK(int ID);
+    bool send_Socket_Connection_Check();
+
+    bool check_PD_InOut();
+    bool check_Socket_CONNECT_ACK();
+
 
     //Serial Parameter
     // - Serial Parameter
     bool startSerial;
 
-    SerialClass m_Serial;
+    SerialClass m_serialDevice;
+    int s_Port;
+    int s_Baudrate;
+    int slave_num;
+
+    timeval PD_timeSendConnect;
+    bool PD_waitConnect = false;
+    int PD_countConnect = 0;
+    int PD_countstatusConnect = 0;
 
 
     // - Init Socket Parameter Function
     bool InitializeValue_Serial();
+    void getSerialPort();
 
     // - Socket Connection Function
     bool Connect_Serial();
     bool Disconnect_Serial();
+
+    pthread_t rfThread;
+    static void* callreadSerialMessageFunc(void *func);
+
+    void readSerialMessage();
+
+    std::vector<char> buffer;
+    std::queue<_msg_t> recv_buf;
+
+    QTimer* CheckSerialDatatimer;
+    QTimer* check_ack_timer;
+    QTimer* check_connect_timer;
+
+    timeval N_timeSendDanger;
+    timeval N_timeSendConnect;
+    bool N_waitDanger = false;
+    bool N_waitConnect = false;
+    int N_countDanger = 0;
+    int N_countConnect = 0;
+    int N_countstatusDanger = 0;
+    int N_countstatusConnect = 0;
+
+    timeval S_timeSendDanger;
+    timeval S_timeSendConnect;
+    bool S_waitDanger = false;
+    bool S_waitConnect = false;
+    int S_countDanger = 0;
+    int S_countConnect = 0;
+    int S_countstatusDanger = 0;
+    int S_countstatusConnect = 0;
+
+    bool send_danger_level(int ID, int danger_level);
+    bool send_Serial_Connection_Check(int ID);
+
+    bool check_Dabger_Level_ACK(_msg_t);
+    bool check_Serial_CONNECT_ACK(_msg_t);
+
+    bool check_CRC16(char*);
+
+    int cal_CRC16(const char nData, int wLength);
+    void memcrop(char* in_buff, int s, int e, char* out_buff);
+    int hex2dec(char* in_buff, int s, int e);
+    void str2hex(char* out_buff, char* in_buff, int size);
+    void char2hex(char* out_buff, char in_buff);
+
+    QTimer* check_danger_timer;
+    bool danger_pd[MAX_SLAVE_NUM];
+    int lastDanger;
+    bool showSpeed;
+    int frontSpeed;
+    timeval Danger_time;
+    bool check_danger_noise;
+    std::tuple<int, int> checkDangerRadar();
+    std::tuple<int, int> checkDangerPD();
+
+    QTimer* N_flicker_timer;
+    QTimer* S_flicker_timer;
+    bool N_display_ON;
+    bool S_display_ON;
 
 
     //Test
@@ -613,10 +705,6 @@ private slots:
     void on_Connectbtn_Serial_clicked();
     void on_Disconnectbtn_Serial_clicked();
 
-    void on_Settingbtn_clicked();
-
-    void on_SaveSetting_btn_clicked();
-
     void on_moveUP_pressed();
     void on_moveUP_released();
     void on_moveDOWN_pressed();
@@ -625,6 +713,17 @@ private slots:
     void on_moveLEFT_released();
     void on_moveRIGHT_pressed();
     void on_moveRIGHT_released();
+
+    void ClassifyingEachSerialMessage();
+    void check_connect();
+    void check_ACK();
+    void check_danger();
+    void N_flicker_display();
+    void S_flicker_display();
+
+    void on_Settingbtn_clicked();
+
+    void on_SaveSetting_btn_clicked();
 
 
 };

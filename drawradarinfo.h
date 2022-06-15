@@ -19,7 +19,7 @@
 #include <PCANBasicClass.h>
 
 #define FPS 30
-#define MAX_OBJ 100
+#define MAX_OBJ 1001
 #define INFOBOX_NUM 10
 
 #define NORTH 0
@@ -92,6 +92,8 @@ public:
     void draw_distline(QPainter* painter);
     void draw_carlane(QPainter* painter);
     void draw_obj(QPainter* painter);
+
+    void reset();
 
 
 protected:

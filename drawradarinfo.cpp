@@ -38,7 +38,8 @@ void DrawRadarInfo::paintEvent(QPaintEvent*)
         draw_distline(&painter);
         if(haveLanePoint)
             draw_carlane(&painter);
-        draw_obj(&painter);
+        //if(startRadar)
+            draw_obj(&painter);
     }
 
     update();
@@ -177,7 +178,7 @@ void DrawRadarInfo::draw_obj(QPainter* painter)
             font.setPointSize(height() / 50);
             painter->setFont(font);
 
-            if((item.index_of_infoBox > 0) && (item.index_of_infoBox <= (INFOBOX_NUM * 2)))
+            if((item.index_of_infoBox > 0) && (item.index_of_infoBox <= INFOBOX_NUM))
             {
                 // 4각형
                 QRect rect(info_x, info_y, width() / INFOBOX_NUM, (height() * (4.0 / 20.0)) - 1);
@@ -191,10 +192,10 @@ void DrawRadarInfo::draw_obj(QPainter* painter)
                 painter->drawText(info_x + (width() / 200), info_y + (textHeight * 2), "VELOCITY    : " + QString::number(item.Velocity,'f',1));
                 painter->drawText(info_x + (width() / 200), info_y + (textHeight * 3), "DISTLONG : " + QString::number(item.DistLong,'f',1));
                 painter->drawText(info_x + (width() / 200), info_y + (textHeight * 4), "TTC      : " + QString::number(item.ttc,'f',1));
-                //painter->drawText(info_x + (width() / 200), info_y + (textHeight * 5), "Zone Index : " + QString::number(item.zone_index));
-                //painter->drawText(info_x + (width() / 200), info_y + (textHeight * 6), "Obj : " + QString::number(Obj_data[i].getsize()));
-                painter->drawText(info_x + (width() / 200), info_y + (textHeight * 5), "ArelLat : " + QString::number(item.ArelLat));
-                painter->drawText(info_x + (width() / 200), info_y + (textHeight * 6), "ArelLong : " + QString::number(item.ArelLong));
+                painter->drawText(info_x + (width() / 200), info_y + (textHeight * 5), "Zone Index : " + QString::number(item.zone_index));
+                painter->drawText(info_x + (width() / 200), info_y + (textHeight * 6), "Obj : " + QString::number(Obj_data[i].getsize()));
+//                painter->drawText(info_x + (width() / 200), info_y + (textHeight * 5), "ArelLat : " + QString::number(item.ArelLat));
+//                painter->drawText(info_x + (width() / 200), info_y + (textHeight * 6), "ArelLong : " + QString::number(item.ArelLong));
             }
             else
             {
@@ -203,6 +204,7 @@ void DrawRadarInfo::draw_obj(QPainter* painter)
         }
     }
 }
+
 //void DrawRadarInfo::draw_obj(QPainter* painter)
 //{
 
@@ -302,6 +304,17 @@ void DrawRadarInfo::draw_obj(QPainter* painter)
 //        }
 //    }
 //}
+void DrawRadarInfo::reset()
+{
+    for(int i=0; i<MAX_OBJ; i++)
+    {
+        Obj_data[i].remove_all();
+    }
+    memset(exist, false, sizeof(bool) * MAX_OBJ);
+    memset(this_frame_data, 0, sizeof(Obj_inf) * MAX_OBJ);
+    memset(infoBoxOccupied, false, sizeof(bool) * INFOBOX_NUM);
+
+}
 void DrawRadarInfo::resizeEvent(QResizeEvent *)
 {
     pixelStartWidth = (Way == -1) ? width() : 0;
