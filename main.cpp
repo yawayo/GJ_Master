@@ -12,12 +12,12 @@ int main(int argc, char *argv[])
 
     MainWindow w;
 
-//    QFile f("C:/Users/ODYSSEY/Desktop/qdarkstyle/style.qss");
-//    f.open(QFile::ReadOnly | QFile::Text);
-//    QTextStream ts(&f);
-//    QString s = ts.readAll();
-//    f.close();
-//    w.setStyleSheet(s);
+    QFile f("C:/Users/ODYSSEY/Desktop/qdarkstyle/style.qss");
+    f.open(QFile::ReadOnly | QFile::Text);
+    QTextStream ts(&f);
+    QString s = ts.readAll();
+    f.close();
+    w.setStyleSheet(s);
 
     w.show();
     //w.showFullScreen();

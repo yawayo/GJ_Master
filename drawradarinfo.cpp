@@ -3,6 +3,9 @@
 DrawRadarInfo::DrawRadarInfo(QWidget* parent) : QWidget (parent)
 {
     first_A = false;
+    gettimeofday(&lastFlame, nullptr);
+
+    graphics_on = true;
 }
 
 
@@ -38,7 +41,7 @@ void DrawRadarInfo::paintEvent(QPaintEvent*)
         draw_distline(&painter);
         if(haveLanePoint)
             draw_carlane(&painter);
-        //if(startRadar)
+        if(startRadar)
             draw_obj(&painter);
     }
 

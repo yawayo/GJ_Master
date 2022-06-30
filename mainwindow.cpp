@@ -8,13 +8,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     createUI();
 
-    //initValue();
+    initValue();
 
-//    GetLocalTime(&global_time);
+    GetLocalTime(&global_time);
 
-//    timer = new QTimer(this);
-//    connect(timer, SIGNAL(timeout()), this, SLOT(readTime()));
-//    timer->start(10);
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(readTime()));
+    timer->start(10);
 
 //    int try_count = 1;
 
@@ -171,7 +171,6 @@ void MainWindow::createUI()
     QPixmap E_PDstatusImg("C:/Users/ODYSSEY/Desktop/img/PD_OUT.png");
     E_PD_Status->setPixmap(E_PDstatusImg);
     E_PD_Status->setScaledContents(true);
-
 
 
     main_page_layout2_1 = new QVBoxLayout;
@@ -1033,8 +1032,8 @@ void MainWindow::createUI()
         radarSetting_page->setLayout(radarSetting_page_layout);
     }
 
-    page->insertWidget(0, main_page);
-    page->insertWidget(1, radarSetting_page);
+    page->insertWidget(1, main_page);
+    page->insertWidget(0, radarSetting_page);
 
 
     // Show Status Bar
@@ -2538,11 +2537,13 @@ bool MainWindow::Connect_Camera()
         NET_DVR_SetReconnect(10000, true);
 
         NET_DVR_DEVICEINFO_V30 DeviceInfo;
-        UserID = NET_DVR_Login_V30("183.99.41.239", 625, "admin", "hbrain0372!", &DeviceInfo);
+        //UserID = NET_DVR_Login_V30("183.99.41.239", 625, "admin", "hbrain0372!", &DeviceInfo);
+        UserID = NET_DVR_Login_V30("192.168.0.64", 8000, "admin", "hbrain0372!", &DeviceInfo);
         if(UserID < 0)
         {
             NET_DVR_Cleanup();
             qDebug() << "NET_DVR_Login  ERROR";
+            Connectbtn_Camera->setEnabled(true);
             return false;
         }
         else
@@ -2651,8 +2652,6 @@ bool MainWindow::Disconnect_Socket()
 {
     if(startSocket)
     {
-
-
         Connectbtn_Socket->setEnabled(true);
         Disconnectbtn_Socket->setEnabled(false);
         startSocket = false;
