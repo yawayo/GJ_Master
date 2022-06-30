@@ -33,20 +33,20 @@ HEADERS += \
 
 LIBS += -LC:/Users/ODYSSEY/Desktop/PTZTest/LIB/ -lHCCore -lHCNetSDK -lPlayCtrl -lHCAlarm -lHCGeneralCfgMgr -lHCPreview -lws2_32
 
-LIBS += D:/OpenCV/opencv_build/bin/libopencv_calib3d3415.dll
-LIBS += D:/OpenCV/opencv_build/bin/libopencv_core3415.dll
-LIBS += D:/OpenCV/opencv_build/bin/libopencv_dnn3415.dll
-LIBS += D:/OpenCV/opencv_build/bin/libopencv_features2d3415.dll
-LIBS += D:/OpenCV/opencv_build/bin/libopencv_flann3415.dll
-LIBS += D:/OpenCV/opencv_build/bin/libopencv_imgproc3415.dll
-LIBS += D:/OpenCV/opencv_build/bin/libopencv_ml3415.dll
-LIBS += D:/OpenCV/opencv_build/bin/libopencv_objdetect3415.dll
-LIBS += D:/OpenCV/opencv_build/bin/libopencv_photo3415.dll
-LIBS += D:/OpenCV/opencv_build/bin/libopencv_shape3415.dll
-LIBS += D:/OpenCV/opencv_build/bin/libopencv_stitching3415.dll
-LIBS += D:/OpenCV/opencv_build/bin/libopencv_superres3415.dll
-LIBS += D:/OpenCV/opencv_build/bin/libopencv_video3415.dll
-LIBS += D:/OpenCV/opencv_build/bin/libopencv_videostab3415.dll
+LIBS += C:/OpenCV/opencv_build/bin/libopencv_calib3d3415.dll
+LIBS += C:/OpenCV/opencv_build/bin/libopencv_core3415.dll
+LIBS += C:/OpenCV/opencv_build/bin/libopencv_dnn3415.dll
+LIBS += C:/OpenCV/opencv_build/bin/libopencv_features2d3415.dll
+LIBS += C:/OpenCV/opencv_build/bin/libopencv_flann3415.dll
+LIBS += C:/OpenCV/opencv_build/bin/libopencv_imgproc3415.dll
+LIBS += C:/OpenCV/opencv_build/bin/libopencv_ml3415.dll
+LIBS += C:/OpenCV/opencv_build/bin/libopencv_objdetect3415.dll
+LIBS += C:/OpenCV/opencv_build/bin/libopencv_photo3415.dll
+LIBS += C:/OpenCV/opencv_build/bin/libopencv_shape3415.dll
+LIBS += C:/OpenCV/opencv_build/bin/libopencv_stitching3415.dll
+LIBS += C:/OpenCV/opencv_build/bin/libopencv_superres3415.dll
+LIBS += C:/OpenCV/opencv_build/bin/libopencv_video3415.dll
+LIBS += C:/OpenCV/opencv_build/bin/libopencv_videostab3415.dll
 
 LIBS += -Wl,--verbose
 
@@ -61,11 +61,11 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-win32:CONFIG(release, debug|release): LIBS += -LD:/OpenCV/opencv/build/x64/vc15/lib/ -lopencv_world3415
-else:win32:CONFIG(debug, debug|release): LIBS += -LD:/OpenCV/opencv/build/x64/vc15/lib/ -lopencv_world3415d
-else:unix: LIBS += -LD:/OpenCV/opencv/build/x64/vc15/lib/ -lopencv_world3415
+win32:CONFIG(release, debug|release): LIBS += -LC:/OpenCV/opencv/build/x64/vc15/lib/ -lopencv_world3415
+else:win32:CONFIG(debug, debug|release): LIBS += -LC:/OpenCV/opencv/build/x64/vc15/lib/ -lopencv_world3415d
+else:unix: LIBS += -LC:/OpenCV/opencv/build/x64/vc15/lib/ -lopencv_world3415
 
 
-INCLUDEPATH += D:/OpenCV/opencv/build/include
-INCLUDEPATH += D:/OpenCV/opencv/build/include/opencv
-INCLUDEPATH += D:/OpenCV/opencv/build/include/opencv2
+INCLUDEPATH += C:/OpenCV/opencv/build/include
+INCLUDEPATH += C:/OpenCV/opencv/build/include/opencv
+INCLUDEPATH += C:/OpenCV/opencv/build/include/opencv2

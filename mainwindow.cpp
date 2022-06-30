@@ -8,7 +8,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     createUI();
 
-    initValue();
+    //initValue();
 
 //    GetLocalTime(&global_time);
 
@@ -1076,7 +1076,7 @@ void MainWindow::createUI()
     main_layout->setContentsMargins(0, 0, 0, 0);
     main_layout->setSpacing(0);
 
-    QWidget * window = new QWidget();
+    window = new QWidget();
     window->setLayout(main_layout);
     window->setMinimumSize(1280, 720);
     setCentralWidget(window);
@@ -2769,7 +2769,7 @@ bool MainWindow::Connect_Serial()
             Serial_Status->setStyleSheet("background-color: rgb(0, 255, 0);");
             pthread_create(&rfThread, nullptr, MainWindow::callreadSerialMessageFunc, this);
 
-            send_danger_level(0, 2);
+            send_danger_level(0, 1);
         }
 
         Connectbtn_Serial->setEnabled(false);

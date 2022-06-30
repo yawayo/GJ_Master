@@ -80,6 +80,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
     // main Layout
+    QWidget * window;
     QVBoxLayout* main_layout;
 
 
