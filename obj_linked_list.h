@@ -8,7 +8,9 @@
 
 struct obj_LinkedList
 {
-    std::list<Obj_inf> data;
+    Obj_inf data[MAX_NODE_NUM] = {0, };
+    int start;
+    int size;
 
     obj_LinkedList();
     ~obj_LinkedList();
@@ -22,3 +24,4 @@ struct obj_LinkedList
 };
 
 #endif // OBJ_LINKED_LIST_H
+

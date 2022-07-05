@@ -1083,7 +1083,8 @@ void MainWindow::createUI()
 void MainWindow::readTime()
 {
     GetLocalTime(&global_time);
-    realTime->setText("    " + QString::number(global_time.wYear) + "/" + QString::number(global_time.wMonth) + "/" + QString::number(global_time.wDay));
+    realTime->setText("    " + QString::number(global_time.wYear) + " / " + QString::number(global_time.wMonth).rightJustified(2, '0') + " / " + QString::number(global_time.wDay).rightJustified(2, '0') + " " +
+                      QString::number(global_time.wHour).rightJustified(2, '0') + ":" + QString::number(global_time.wMinute).rightJustified(2, '0') + ":" + QString::number(global_time.wSecond).rightJustified(2, '0') + "." + QString::number(global_time.wMilliseconds).rightJustified(3, '0'));
 }
 void MainWindow::read_Setting_ini(QString path)
 {
@@ -1258,6 +1259,7 @@ bool MainWindow::Connect_Radar()
         if(stsResult != PCAN_ERROR_OK)
         {
             qDebug() << "PCAN Initialize ERROR";
+            Connectbtn_Radar->setEnabled(true);
             return false;
         }
         else
@@ -1286,6 +1288,8 @@ bool MainWindow::Connect_Radar()
         if(stsResult != PCAN_ERROR_OK)
         {
             qDebug() << "PCAN Initialize ERROR";
+            stsResult = N_Radar_Viewer->m_PCANDevice.Uninitialize(N_Radar_Viewer->m_Handle);
+            Connectbtn_Radar->setEnabled(true);
             return false;
         }
         else
@@ -2537,8 +2541,7 @@ bool MainWindow::Connect_Camera()
         NET_DVR_SetReconnect(10000, true);
 
         NET_DVR_DEVICEINFO_V30 DeviceInfo;
-        //UserID = NET_DVR_Login_V30("183.99.41.239", 625, "admin", "hbrain0372!", &DeviceInfo);
-        UserID = NET_DVR_Login_V30("192.168.0.64", 8000, "admin", "hbrain0372!", &DeviceInfo);
+        UserID = NET_DVR_Login_V30("183.99.41.239", 625, "admin", "hbrain0372!", &DeviceInfo);
         if(UserID < 0)
         {
             NET_DVR_Cleanup();
