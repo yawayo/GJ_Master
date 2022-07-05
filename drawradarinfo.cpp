@@ -157,8 +157,6 @@ void DrawRadarInfo::draw_obj(QPainter* painter)
 
             Obj_inf item = Obj_data[i].getLast();
 
-//            int obj_x = ((item.DistLat / 2 - MAX_DISTLAT) * -1) * (float(width()) / (MAX_DISTLAT * 2));
-//            int obj_y = height() - (height() / 20) - ((item.DistLong / MAX_DISTLONG) * (height() * (1.0 - (2.0 / 20.0))));
             int obj_x = height() * (5.0 / 20.0) + pixelStartHeight + Way * (((item.DistLat / MAX_DISTLAT) + 1.0) * (height() * (7.0 / 20.0)));
             int obj_y = pixelStartWidth + Way * ((width() / 50.0) + ((item.DistLong / MAX_DISTLONG) * (width() * (24.0 / 25.0))));
             int info_x = (width() / INFOBOX_NUM) * (item.index_of_infoBox - 1);

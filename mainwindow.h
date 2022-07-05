@@ -580,7 +580,7 @@ public:
     bool Disconnect_Socket();
 
     bool send_PD_InOut_ACK(int ID);
-    bool send_Socket_Connection_Check();
+    bool send_Socket_Connection_Check(int ID);
 
     bool check_PD_InOut();
     bool check_Socket_CONNECT_ACK();
@@ -593,7 +593,6 @@ public:
     SerialClass m_serialDevice;
     int s_Port;
     int s_Baudrate;
-    int slave_num;
 
     timeval PD_timeSendConnect;
     bool PD_waitConnect = false;
