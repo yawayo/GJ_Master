@@ -555,6 +555,9 @@ public:
     bool Disconnect_Camera();
 
 
+    QTimer* check_ack_timer;
+    QTimer* check_connect_timer;
+
     //Serial Parameter
     // - Serial Parameter
     bool startSocket;
@@ -563,14 +566,19 @@ public:
     QString socketIP;
     int socketPort;
 
+    timeval Socket_timeSendDanger;
+    timeval Socket_timeSendConnect;
+    bool Socket_waitDanger = false;
+    bool Socket_waitConnect = false;
+    int Socket_countDanger = 0;
+    int Socket_countConnect = 0;
+    int Socket_countstatusConnect = 0;
+
+    std::vector<char> socket_buffer;
+    std::queue<_msg_t> socket_recv_buf;
+
     bool E_statusPD;
     bool W_statusPD;
-
-    pthread_t socketThread;
-    static void* callreadSocketMessageFunc(void *func);
-
-    void readSocketMessage();
-
 
     // - Init Socket Parameter Function
     bool InitializeValue_Socket();
@@ -579,11 +587,18 @@ public:
     bool Connect_Socket();
     bool Disconnect_Socket();
 
+    pthread_t socketThread;
+    static void* callreadSocketMessageFunc(void *func);
+
+    void readSocketMessage();
+
     bool send_PD_InOut_ACK(int ID);
     bool send_Socket_Connection_Check(int ID);
 
     bool check_PD_InOut();
     bool check_Socket_CONNECT_ACK();
+
+    QTimer* CheckSocketDatatimer;
 
 
     //Serial Parameter
@@ -613,12 +628,10 @@ public:
 
     void readSerialMessage();
 
-    std::vector<char> buffer;
-    std::queue<_msg_t> recv_buf;
+    std::vector<char> serial_buffer;
+    std::queue<_msg_t> serial_recv_buf;
 
     QTimer* CheckSerialDatatimer;
-    QTimer* check_ack_timer;
-    QTimer* check_connect_timer;
 
     timeval N_timeSendDanger;
     timeval N_timeSendConnect;
@@ -626,7 +639,6 @@ public:
     bool N_waitConnect = false;
     int N_countDanger = 0;
     int N_countConnect = 0;
-    int N_countstatusDanger = 0;
     int N_countstatusConnect = 0;
 
     timeval S_timeSendDanger;
@@ -635,7 +647,6 @@ public:
     bool S_waitConnect = false;
     int S_countDanger = 0;
     int S_countConnect = 0;
-    int S_countstatusDanger = 0;
     int S_countstatusConnect = 0;
 
     bool send_danger_level(int ID, int danger_level);
@@ -684,10 +695,10 @@ public:
     SYSTEMTIME last_save_traffic;
 
 
-
 protected:
     virtual void closeEvent(QCloseEvent*);
     virtual void resizeEvent(QResizeEvent*);
+
 
 private slots:
 
@@ -715,6 +726,7 @@ private slots:
     void on_moveRIGHT_released();
 
     void ClassifyingEachSerialMessage();
+    void ClassifyingEachSocketMessage();
     void check_connect();
     void check_ACK();
     void check_danger();

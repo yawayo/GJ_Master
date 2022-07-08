@@ -20,6 +20,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(check_connect_timer, SIGNAL(timeout()), this, SLOT(check_connect()));
     check_connect_timer->start(10000);
 
+    check_ack_timer = new QTimer(this);
+    connect(check_ack_timer, SIGNAL(timeout()), this, SLOT(check_ACK()));
+    check_ack_timer->start(3);
+
     //    int try_count = 1;
 
     //    //while(!Connect_Radar())
@@ -2644,54 +2648,6 @@ void MainWindow::on_moveRIGHT_released()
 {
     NET_DVR_PTZControlWithSpeed_Other(UserID, 1, PAN_RIGHT, 1, 5);
 }
-
-bool MainWindow::InitializeValue_Socket()
-{
-
-}
-void MainWindow::on_Connectbtn_Socket_clicked()
-{
-    Connect_Socket();
-}
-
-void MainWindow::on_Disconnectbtn_Socket_clicked()
-{
-    Disconnect_Socket();
-}
-
-bool MainWindow::Connect_Socket()
-{
-    if(!startSocket)
-    {
-        m_socketDevice.Open("127.0.0.1", 1234);
-
-        Connectbtn_Socket->setEnabled(false);
-        Disconnectbtn_Socket->setEnabled(true);
-        startSocket = true;
-
-        Socket_Status->setStyleSheet("background-color: rgb(0, 255, 0);");
-    }
-
-    return true;
-}
-bool MainWindow::Disconnect_Socket()
-{
-    if(startSocket)
-    {
-        Connectbtn_Socket->setEnabled(true);
-        Disconnectbtn_Socket->setEnabled(false);
-        startSocket = false;
-
-        Socket_Status->setStyleSheet("background-color: rgb(255, 0, 0);");
-    }
-
-    return true;
-}
-
-bool MainWindow::send_Socket_Connection_Check(int ID)
-{
-
-}
 bool MainWindow::InitializeValue_Serial()
 {
     startSerial = false;
@@ -2706,8 +2662,6 @@ bool MainWindow::InitializeValue_Serial()
 
     CheckSerialDatatimer = new QTimer(this);
     connect(CheckSerialDatatimer, SIGNAL(timeout()), this, SLOT(ClassifyingEachSerialMessage()));
-    check_ack_timer = new QTimer(this);
-    connect(check_ack_timer, SIGNAL(timeout()), this, SLOT(check_ACK()));
 
     N_flicker_timer = new QTimer(this);
     connect(N_flicker_timer, SIGNAL(timeout()), this, SLOT(N_flicker_display()));
@@ -2790,14 +2744,15 @@ bool MainWindow::Connect_Serial()
         else
         {
             CheckSerialDatatimer->start(3);
-            check_ack_timer->start(3);
 
             startSerial = true;
             Serial_Status->setStyleSheet("background-color: rgb(0, 255, 0);");
             pthread_create(&rfThread, nullptr, MainWindow::callreadSerialMessageFunc, this);
 
             N_waitDanger = true;
+            S_waitDanger = true;
             N_countDanger = 0;
+            S_countDanger = 0;
             send_danger_level(0, 2);
         }
 
@@ -2818,7 +2773,6 @@ bool MainWindow::Disconnect_Serial()
 
         Serial_Status->setStyleSheet("background-color: rgb(255, 0, 0);");
         CheckSerialDatatimer->stop();
-        check_ack_timer->stop();
 
         N_flicker_timer->stop();
         S_flicker_timer->stop();
@@ -3058,49 +3012,49 @@ void MainWindow::readSerialMessage()
         char data = m_serialDevice.readOneByte();
         if(data != NULL)
         {
-            buffer.push_back(data);
+            serial_buffer.push_back(data);
         }
 
-        if(buffer.size() >= 5)
+        if(serial_buffer.size() >= 5)
         {
-            if(buffer[0] == STX)
+            if(serial_buffer[0] == STX)
             {
-                int len = buffer[1];
-                if(buffer.size() >= (len + 2))
+                int len = serial_buffer[1];
+                if(serial_buffer.size() >= (len + 2))
                 {
-                    char code = buffer[2];
+                    char code = serial_buffer[2];
                     if((code == DANGER_LEVEL_ACK) || (code == CHECK_CONNECTION_ACK))
                     {
                         char msg[32] = {0, };
                         for(int i=0; i<len+2; i++)
-                            msg[i] = buffer[i];
+                            msg[i] = serial_buffer[i];
                         _msg_t msg_set;
                         memcpy(msg_set.msg, msg, 32);
                         msg_set.len = len+2;
-                        recv_buf.push(msg_set);
-                        buffer.erase(buffer.begin(), buffer.begin()+len+2);
+                        serial_recv_buf.push(msg_set);
+                        serial_buffer.erase(serial_buffer.begin(), serial_buffer.begin()+len+2);
                     }
                     else
-                        buffer.erase(buffer.begin());
+                        serial_buffer.erase(serial_buffer.begin());
                 }
             }
             else
-                buffer.erase(buffer.begin());
+                serial_buffer.erase(serial_buffer.begin());
 
 
-            if(buffer.size() >= 50)
-                buffer.erase(buffer.begin());
+            if(serial_buffer.size() >= 50)
+                serial_buffer.erase(serial_buffer.begin());
         }
     }
 }
 
 void MainWindow::ClassifyingEachSerialMessage()
 {
-    if(!recv_buf.empty())
+    if(!serial_recv_buf.empty())
     {
         _msg_t msg;
-        memcpy(&msg, &recv_buf.front(), sizeof(_msg_t));
-        recv_buf.pop();
+        memcpy(&msg, &serial_recv_buf.front(), sizeof(_msg_t));
+        serial_recv_buf.pop();
 
         switch(msg.msg[2])
         {
@@ -3121,6 +3075,7 @@ void MainWindow::ClassifyingEachSerialMessage()
         }
     }
 }
+
 bool MainWindow::check_Dabger_Level_ACK(_msg_t msg)
 {
     if(startSerial)
@@ -3142,7 +3097,6 @@ bool MainWindow::check_Dabger_Level_ACK(_msg_t msg)
                 if(msg.msg[4] == ACK)
                 {
                     N_waitDanger = false;
-                    N_countstatusDanger = 0;
                     return true;
                 }
                 else
@@ -3159,7 +3113,6 @@ bool MainWindow::check_Dabger_Level_ACK(_msg_t msg)
                 if(msg.msg[4] == ACK)
                 {
                     S_waitDanger = false;
-                    S_countstatusDanger = 0;
                     return true;
                 }
                 else
@@ -3239,105 +3192,214 @@ bool MainWindow::check_Serial_CONNECT_ACK(_msg_t msg)
 }
 void MainWindow::check_ACK()
 {
-    bool connect_fail = false;
-
-    bool N_check_waiting_danger = false;
-    bool S_check_waiting_danger = false;
-    bool N_check_waiting_connect = false;
-    bool S_check_waiting_connect = false;
-
-    if(N_waitDanger) N_check_waiting_danger = true;
-    if(S_waitDanger) S_check_waiting_danger = true;
-    if(N_waitConnect) N_check_waiting_connect = true;
-    if(S_waitConnect) S_check_waiting_connect = true;
-
     timeval now_t;
     gettimeofday(&now_t, nullptr);
-    if(N_waitDanger)
+
+    if(startSerial)
     {
-        if(((now_t.tv_sec - N_timeSendDanger.tv_sec) * 1000 + (now_t.tv_usec - N_timeSendDanger.tv_usec) / 1000 )/1000 >= 1)
+        if(N_waitDanger)
         {
-            bool connection_check = false;
+            if(((now_t.tv_sec - N_timeSendDanger.tv_sec) * 1000 + (now_t.tv_usec - N_timeSendDanger.tv_usec) / 1000 )/1000 >= 1)
+            {
+                bool connection_check = false;
 
-            N_countDanger++;
-            if(N_countDanger>=RESEND_TIME)
-            {
-                connection_check = true;
-                N_countstatusDanger++;
-            }
+                N_countDanger++;
+                if(N_countDanger>=RESEND_TIME)
+                    connection_check = true;
 
-            if(connection_check)
-            {
-                N_waitDanger = false;
-                N_countDanger = 0;
-            }
-            else
-            {
-                for(int i=1; i<=slave_num; i++)
+                if(connection_check)
                 {
-                    if(waitDanger[i-1])
+                    N_waitDanger = false;
+                    N_countDanger = 0;
+                }
+                else
+                {
+                    if(N_waitDanger)
                     {
-                        Send_danger_level(i, lastDanger);
+                        send_danger_level(NORTH + 1, lastDanger);
                         N_waitDanger = true;
                     }
                 }
-                timeSendDanger = QDateTime::currentDateTime();
             }
         }
+        else
+        {
+            N_waitDanger = false;
+            N_countDanger = 0;
+        }
+        if(N_waitConnect)
+        {
+            if(((now_t.tv_sec - N_timeSendConnect.tv_sec) * 1000 + (now_t.tv_usec - N_timeSendConnect.tv_usec) / 1000 )/1000 >= 1)
+            {
+                bool connection_check = false;
+
+                N_countConnect++;
+                if(N_countConnect>=RESEND_TIME)
+                {
+                    connection_check = true;
+                    N_countstatusConnect++;
+                }
+
+                if(connection_check)
+                {
+                    N_waitConnect = false;
+                    N_countConnect = 0;
+                }
+                else
+                {
+                    if(N_waitConnect)
+                    {
+                        send_Serial_Connection_Check(NORTH + 1);
+                        N_waitConnect = true;
+                    }
+                }
+            }
+        }
+        else
+        {
+            N_waitConnect = false;
+            N_countConnect = 0;
+        }
+        if(S_waitDanger)
+        {
+            if(((now_t.tv_sec - S_timeSendDanger.tv_sec) * 1000 + (now_t.tv_usec - S_timeSendDanger.tv_usec) / 1000 )/1000 >= 1)
+            {
+                bool connection_check = false;
+
+                S_countDanger++;
+                if(S_countDanger>=RESEND_TIME)
+                    connection_check = true;
+
+                if(connection_check)
+                {
+                    S_waitDanger = false;
+                    S_countDanger = 0;
+                }
+                else
+                {
+                    if(S_waitDanger)
+                    {
+                        send_danger_level(SOUTH + 1, lastDanger);
+                        S_waitDanger = true;
+                    }
+                }
+            }
+        }
+        else
+        {
+            S_waitDanger = false;
+            S_countDanger = 0;
+        }
+        if(S_waitConnect)
+        {
+            if(((now_t.tv_sec - S_timeSendConnect.tv_sec) * 1000 + (now_t.tv_usec - S_timeSendConnect.tv_usec) / 1000 )/1000 >= 1)
+            {
+                bool connection_check = false;
+
+                S_countConnect++;
+                if(S_countConnect>=RESEND_TIME)
+                {
+                    connection_check = true;
+                    S_countstatusConnect++;
+                }
+
+                if(connection_check)
+                {
+                    S_waitConnect = false;
+                    S_countConnect = 0;
+                }
+                else
+                {
+                    if(S_waitConnect)
+                    {
+                        send_Serial_Connection_Check(SOUTH + 1);
+                        S_waitConnect = true;
+                    }
+                }
+            }
+        }
+        else
+        {
+            S_waitConnect = false;
+            S_countConnect = 0;
+        }
+
+        if((N_countstatusConnect >= 5) || ((S_countstatusConnect >= 5)))
+            Serial_Status->setStyleSheet("background-color: rgb(255, 255, 0);");
+        else
+            Serial_Status->setStyleSheet("background-color: rgb(0, 255, 0);");
     }
-    else
+    if(startSocket)
     {
-        memset(waitDanger, false, sizeof(bool) * MAX_SLAVE_NUM);
-        memset(countDanger, 0, sizeof(int) * MAX_SLAVE_NUM);
+        if(Socket_waitDanger)
+        {
+            if(((now_t.tv_sec - Socket_timeSendDanger.tv_sec) * 1000 + (now_t.tv_usec - Socket_timeSendDanger.tv_usec) / 1000 )/1000 >= 1)
+            {
+                bool connection_check = false;
+
+                Socket_countDanger++;
+                if(Socket_countDanger>=RESEND_TIME)
+                    connection_check = true;
+
+                if(connection_check)
+                {
+                    Socket_waitDanger = false;
+                    Socket_countDanger = 0;
+                }
+                else
+                {
+                    if(Socket_waitDanger)
+                    {
+                        send_danger_level(NORTH + 1, lastDanger);
+                        Socket_waitDanger = true;
+                    }
+                }
+            }
+        }
+        else
+        {
+            Socket_waitDanger = false;
+            Socket_countDanger = 0;
+        }
+        if(Socket_waitConnect)
+        {
+            if(((now_t.tv_sec - Socket_timeSendConnect.tv_sec) * 1000 + (now_t.tv_usec - Socket_timeSendConnect.tv_usec) / 1000 )/1000 >= 1)
+            {
+                bool connection_check = false;
+
+                Socket_countConnect++;
+                if(Socket_countConnect>=RESEND_TIME)
+                {
+                    connection_check = true;
+                    Socket_countstatusConnect++;
+                }
+
+                if(connection_check)
+                {
+                    Socket_waitConnect = false;
+                    Socket_countConnect = 0;
+                }
+                else
+                {
+                    if(Socket_waitConnect)
+                    {
+                        send_Serial_Connection_Check(NORTH + 1);
+                        Socket_waitConnect = true;
+                    }
+                }
+            }
+        }
+        else
+        {
+            Socket_waitConnect = false;
+            Socket_countConnect = 0;
+        }
+
+        if(Socket_countstatusConnect >= 5)
+            Socket_Status->setStyleSheet("background-color: rgb(255, 255, 0);");
+        else
+            Socket_Status->setStyleSheet("background-color: rgb(0, 255, 0);");
     }
-
-//    if(N_waitConnect)
-//    {
-//        if(((now_t.tv_sec - N_timeSendConnect.tv_sec) * 1000 + (now_t.tv_usec - N_timeSendConnect.tv_usec) / 1000 )/1000 >= 1)
-//        {
-//            for(i=0; i<slave_num; i++)
-//                if(waitConnect[i])
-//                    countConnect[i]++;
-
-//            bool connection_check = false;
-
-//            for(i=0; i<slave_num; i++)
-//            {
-//                if(countConnect[i]>=RESEND_TIME)
-//                {
-//                    connection_check = true;
-//                    countstatusConnect[i]++;
-//                }
-//            }
-
-//            if(connection_check)
-//            {
-//                memset(waitConnect, false, sizeof(bool) * MAX_SLAVE_NUM);
-//                memset(countConnect, 0, sizeof(int) * MAX_SLAVE_NUM);
-//            }
-//            else
-//            {
-//                for(int i=1; i<=slave_num; i++)
-//                    if(waitConnect[i-1])
-//                        Send_Connection_Check(i);
-
-//                timeSendConnect = QDateTime::currentDateTime();
-//            }
-//        }
-//    }
-//    else
-//    {
-//        memset(waitConnect, false, sizeof(bool) * MAX_SLAVE_NUM);
-//        memset(countConnect, 0, sizeof(int) * MAX_SLAVE_NUM);
-//    }
-//    for(i=0; i<slave_num; i++)
-//        if((countstatusDanger[i] + countstatusConnect[i]) >= 10)
-//            connect_fail = true;
-
-//    if(connect_fail)
-//        ui->RFConnection->setStyleSheet("background-color: rgb(255, 255, 0);");
-//    else
-//        ui->RFConnection->setStyleSheet("background-color: rgb(0, 255, 0);");
 }
 
 bool MainWindow::check_CRC16(char* msg)
@@ -3586,6 +3648,154 @@ void MainWindow::S_flicker_display()
     S_display_ON = !S_display_ON;
 }
 
+
+bool MainWindow::InitializeValue_Socket()
+{
+    startSocket = false;
+
+    CheckSerialDatatimer = new QTimer(this);
+    connect(CheckSerialDatatimer, SIGNAL(timeout()), this, SLOT(ClassifyingEachSocketMessage()));
+}
+void MainWindow::on_Connectbtn_Socket_clicked()
+{
+    Connect_Socket();
+}
+
+void MainWindow::on_Disconnectbtn_Socket_clicked()
+{
+    Disconnect_Socket();
+}
+
+bool MainWindow::Connect_Socket()
+{
+    if(!startSocket)
+    {
+        int res = m_socketDevice.Open("192.168.0.3", 3000);
+        if(res == false)
+        {
+            qDebug() << "Socket Open ERROR";
+            return false;
+        }
+        else
+        {
+            CheckSerialDatatimer->start(3);
+
+            pthread_create(&socketThread, nullptr, MainWindow::callreadSocketMessageFunc, this);
+
+            Connectbtn_Socket->setEnabled(false);
+            Disconnectbtn_Socket->setEnabled(true);
+            Socket_Status->setStyleSheet("background-color: rgb(0, 255, 0);");
+
+            startSocket = true;
+
+            PD_waitConnect = true;
+            PD_countConnect = 0;
+
+            send_Socket_Connection_Check(0);
+        }
+    }
+
+    return true;
+}
+bool MainWindow::Disconnect_Socket()
+{
+    if(startSocket)
+    {
+        CheckSerialDatatimer->stop();
+
+        startSocket = false;
+        Connectbtn_Socket->setEnabled(true);
+        Disconnectbtn_Socket->setEnabled(false);
+        Socket_Status->setStyleSheet("background-color: rgb(255, 0, 0);");
+
+        int res = m_socketDevice.Close();
+    }
+
+    return true;
+}
+
+void *MainWindow::callreadSocketMessageFunc(void *func)
+{
+    (static_cast<MainWindow *>(func))->readSocketMessage();
+    return nullptr;
+}
+
+void MainWindow::readSocketMessage()
+{
+    //qDebug() << "readSocket";
+
+    while(startSocket)
+    {
+        char data = m_socketDevice.readOneByte();
+        if(data != NULL)
+        {
+            socket_buffer.push_back(data);
+        }
+
+        if(socket_buffer.size() >= 5)
+        {
+            if(socket_buffer[0] == STX)
+            {
+                int len = socket_buffer[1];
+                if(socket_buffer.size() >= (len + 2))
+                {
+                    char code = socket_buffer[2];
+                    if((code == PD_INOUT) || (code == CHECK_CONNECTION_ACK))
+                    {
+                        char msg[32] = {0, };
+                        for(int i=0; i<len+2; i++)
+                            msg[i] = socket_buffer[i];
+                        _msg_t msg_set;
+                        memcpy(msg_set.msg, msg, 32);
+                        msg_set.len = len+2;
+                        socket_recv_buf.push(msg_set);
+                        socket_buffer.erase(socket_buffer.begin(), socket_buffer.begin()+len+2);
+                    }
+                    else
+                        socket_buffer.erase(socket_buffer.begin());
+                }
+            }
+            else
+                socket_buffer.erase(socket_buffer.begin());
+
+
+            if(socket_buffer.size() >= 50)
+                socket_buffer.erase(socket_buffer.begin());
+        }
+    }
+}
+
+void MainWindow::ClassifyingEachSocketMessage()
+{
+    if(!socket_recv_buf.empty())
+    {
+        _msg_t msg;
+        memcpy(&msg, &socket_recv_buf.front(), sizeof(_msg_t));
+        socket_recv_buf.pop();
+
+        switch(msg.msg[2])
+        {
+        case PD_INOUT:
+        {
+            check_Dabger_Level_ACK(msg);
+            break;
+        }
+
+        case CHECK_CONNECTION_ACK:
+        {
+            check_Serial_CONNECT_ACK(msg);
+            break;
+        }
+
+        default:
+            break;
+        }
+    }
+}
+bool MainWindow::send_Socket_Connection_Check(int ID)
+{
+
+}
 void MainWindow::on_Settingbtn_clicked()
 {
     if(page->currentIndex() == 0)
