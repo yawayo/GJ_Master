@@ -1052,7 +1052,7 @@ void MainWindow::createUI()
     N_Radar_Status = new QLabel("Radar"); N_Radar_Status->setAlignment(Qt::AlignCenter); N_Radar_Status->setMaximumSize(100, 20); N_Radar_Status->setFrameShape(QFrame::Box); N_Radar_Status->setLineWidth(1);
     S_Radar_Status = new QLabel("Radar"); S_Radar_Status->setAlignment(Qt::AlignCenter); S_Radar_Status->setMaximumSize(100, 20); S_Radar_Status->setFrameShape(QFrame::Box); S_Radar_Status->setLineWidth(1);
     Camera_Status = new QLabel("Camera"); Camera_Status->setAlignment(Qt::AlignCenter); Camera_Status->setMaximumSize(100, 20); Camera_Status->setFrameShape(QFrame::Box); Camera_Status->setLineWidth(1);
-    Socket_Status = new QLabel("Serial"); Socket_Status->setAlignment(Qt::AlignCenter); Socket_Status->setMaximumSize(100, 20); Socket_Status->setFrameShape(QFrame::Box); Socket_Status->setLineWidth(1);
+    Socket_Status = new QLabel("Socket"); Socket_Status->setAlignment(Qt::AlignCenter); Socket_Status->setMaximumSize(100, 20); Socket_Status->setFrameShape(QFrame::Box); Socket_Status->setLineWidth(1);
     Serial_Status = new QLabel("Serial"); Serial_Status->setAlignment(Qt::AlignCenter); Serial_Status->setMaximumSize(100, 20); Serial_Status->setFrameShape(QFrame::Box); Serial_Status->setLineWidth(1);
 
     status_layout->addWidget(N_Radar_Status);
@@ -3653,8 +3653,8 @@ bool MainWindow::InitializeValue_Socket()
 {
     startSocket = false;
 
-    CheckSerialDatatimer = new QTimer(this);
-    connect(CheckSerialDatatimer, SIGNAL(timeout()), this, SLOT(ClassifyingEachSocketMessage()));
+    CheckSocketDatatimer = new QTimer(this);
+    connect(CheckSocketDatatimer, SIGNAL(timeout()), this, SLOT(ClassifyingEachSocketMessage()));
 }
 void MainWindow::on_Connectbtn_Socket_clicked()
 {
@@ -3678,7 +3678,7 @@ bool MainWindow::Connect_Socket()
         }
         else
         {
-            CheckSerialDatatimer->start(3);
+            CheckSocketDatatimer->start(3);
 
             pthread_create(&socketThread, nullptr, MainWindow::callreadSocketMessageFunc, this);
 
@@ -3701,7 +3701,7 @@ bool MainWindow::Disconnect_Socket()
 {
     if(startSocket)
     {
-        CheckSerialDatatimer->stop();
+        CheckSocketDatatimer->stop();
 
         startSocket = false;
         Connectbtn_Socket->setEnabled(true);
@@ -3794,7 +3794,26 @@ void MainWindow::ClassifyingEachSocketMessage()
 }
 bool MainWindow::send_Socket_Connection_Check(int ID)
 {
+    char data[32] = {0, };
 
+    sprintf(data, "%c%c%c%c", STX, 5, CHECK_CONNECTION, ID);
+
+    _msg_t msg_s;
+    sprintf(msg_s.msg, "%c%c%c%c%c\n", STX, 3, CHECK_CONNECTION, ID, ETX);
+    msg_s.len = 3 + 2;
+
+    if(startSocket)
+    {
+        m_socketDevice.writeData(msg_s.msg, msg_s.len + 1);
+
+        gettimeofday(&Socket_timeSendConnect, nullptr);
+
+        char hex_msg[64] = {0, };
+        str2hex(hex_msg, msg_s.msg, msg_s.len);
+        if(do_print_text) qDebug("Send Connect Check : %s", hex_msg);
+    }
+    else
+        if(do_print_text) qDebug() << "Send Connection Check Error : Not connected Socket Module";
 }
 void MainWindow::on_Settingbtn_clicked()
 {

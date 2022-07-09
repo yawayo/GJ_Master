@@ -18,7 +18,7 @@ bool SocketClass::Open(char* IP, int Port)
         return 1;
     }
 
-    sock = socket(PF_INET, SOCK_STREAM, 0);
+    sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
     SOCKADDR_IN addr;
 

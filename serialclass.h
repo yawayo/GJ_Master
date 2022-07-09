@@ -30,11 +30,6 @@
 #define MAX_SLAVE_NUM 25
 #define RESEND_TIME 3
 
-struct _msg_t
-{
-    int len;
-    char msg[32] = {0, };
-};
 class SerialClass
 {
 public:
